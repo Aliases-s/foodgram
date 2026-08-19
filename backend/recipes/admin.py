@@ -1,8 +1,14 @@
 """Настройки админ-зоны приложения recipes."""
 from django.contrib import admin
 
-from recipes.models import (Favorite, Ingredient, Recipe, RecipeIngredient,
-                            ShoppingCart, Tag)
+from recipes.models import (
+    Favorite,
+    Ingredient,
+    Recipe,
+    RecipeIngredient,
+    ShoppingCart,
+    Tag,
+)
 
 
 class RecipeIngredientInline(admin.TabularInline):

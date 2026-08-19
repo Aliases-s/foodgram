@@ -5,12 +5,12 @@ from rest_framework import serializers
 
 from api.fields import Base64ImageField
 from recipes.models import (
+    Favorite,
     Ingredient,
     Recipe,
     RecipeIngredient,
-    Tag,
-    Favorite,
     ShoppingCart,
+    Tag,
 )
 from users.models import Subscription
 
@@ -67,7 +67,9 @@ class RecipeIngredientReadSerializer(serializers.ModelSerializer):
 
     id = serializers.IntegerField(source="ingredient.id")
     name = serializers.CharField(source="ingredient.name")
-    measurement_unit = serializers.CharField(source="ingredient.measurement_unit")
+    measurement_unit = serializers.CharField(
+        source="ingredient.measurement_unit"
+    )
 
     class Meta:
         model = RecipeIngredient
@@ -105,12 +107,18 @@ class RecipeReadSerializer(serializers.ModelSerializer):
     def get_is_favorited(self, obj):
         """Определяет, находится ли рецепт в избранном."""
         user = self.context["request"].user
-        return user.is_authenticated and obj.favorites.filter(user=user).exists()
+        return (
+            user.is_authenticated
+            and obj.favorites.filter(user=user).exists()
+        )
 
     def get_is_in_shopping_cart(self, obj):
         """Определяет, находится ли рецепт в списке покупок."""
         user = self.context["request"].user
-        return user.is_authenticated and obj.shoppingcarts.filter(user=user).exists()
+        return (
+            user.is_authenticated
+            and obj.shoppingcarts.filter(user=user).exists()
+        )
 
 
 class RecipeIngredientWriteSerializer(serializers.ModelSerializer):
@@ -148,9 +156,13 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
         """Проверяет наличие и уникальность тегов и ингредиентов."""
         tags = data.get("tags")
         if not tags:
-            raise serializers.ValidationError({"tags": "Нужен хотя бы один тег."})
+            raise serializers.ValidationError(
+                {"tags": "Нужен хотя бы один тег."}
+            )
         if len(tags) != len(set(tags)):
-            raise serializers.ValidationError({"tags": "Теги не должны повторяться."})
+            raise serializers.ValidationError(
+                {"tags": "Теги не должны повторяться."}
+            )
         ingredients = data.get("ingredients")
         if not ingredients:
             raise serializers.ValidationError(
@@ -220,7 +232,9 @@ class UserRecipeRelationSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         """Возвращает рецепт в сокращённой форме."""
-        return RecipeMinifiedSerializer(instance.recipe, context=self.context).data
+        return RecipeMinifiedSerializer(
+            instance.recipe, context=self.context
+        ).data
 
 
 class FavoriteSerializer(UserRecipeRelationSerializer):
@@ -255,7 +269,9 @@ class UserWithRecipesSerializer(UserSerializer):
         limit = self.context["request"].query_params.get("recipes_limit")
         if limit and limit.isdigit():
             recipes = recipes[: int(limit)]
-        return RecipeMinifiedSerializer(recipes, many=True, context=self.context).data
+        return RecipeMinifiedSerializer(
+            recipes, many=True, context=self.context
+        ).data
 
 
 class SubscriptionSerializer(serializers.ModelSerializer):
@@ -268,14 +284,18 @@ class SubscriptionSerializer(serializers.ModelSerializer):
     def validate(self, data):
         """Проверяет подписку на себя и повторную подписку."""
         if data["user"] == data["author"]:
-            raise serializers.ValidationError("Нельзя подписаться на самого себя.")
+            raise serializers.ValidationError(
+                "Нельзя подписаться на самого себя."
+            )
         if Subscription.objects.filter(**data).exists():
             raise serializers.ValidationError("Подписка уже существует.")
         return data
 
     def to_representation(self, instance):
         """Возвращает автора с рецептами."""
-        return UserWithRecipesSerializer(instance.author, context=self.context).data
+        return UserWithRecipesSerializer(
+            instance.author, context=self.context
+        ).data
 
 
 class AvatarSerializer(serializers.ModelSerializer):
