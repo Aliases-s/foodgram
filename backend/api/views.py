@@ -27,8 +27,14 @@ from api.serializers import (
     TagSerializer,
     UserWithRecipesSerializer,
 )
-from recipes.models import (Favorite, Ingredient, Recipe, RecipeIngredient,
-                            ShoppingCart, Tag)
+from recipes.models import (
+    Favorite,
+    Ingredient,
+    Recipe,
+    RecipeIngredient,
+    ShoppingCart,
+    Tag,
+)
 from users.models import Subscription
 
 User = get_user_model()
@@ -74,11 +80,10 @@ class UserViewSet(DjoserUserViewSet):
     )
     def subscriptions(self, request):
         """Возвращает подписки текущего пользователя."""
+        subscriptions = request.user.subscriptions.select_related("author")
         authors = [
             subscription.author
-            for subscription in (
-                request.user.subscriptions.select_related("author")
-            )
+            for subscription in subscriptions
         ]
         page = self.paginate_queryset(authors)
         serializer = UserWithRecipesSerializer(
@@ -199,7 +204,6 @@ class RecipeViewSet(ModelViewSet):
     @favorite.mapping.delete
     def remove_favorite(self, request, pk=None):
         """Удаляет рецепт из избранного."""
-
         return self._remove_relation(Favorite, request, pk)
 
     @action(
@@ -214,7 +218,6 @@ class RecipeViewSet(ModelViewSet):
     @shopping_cart.mapping.delete
     def remove_shopping_cart(self, request, pk=None):
         """Удаляет рецепт из списка покупок."""
-
         return self._remove_relation(ShoppingCart, request, pk)
 
     @action(

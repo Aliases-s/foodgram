@@ -144,3 +144,7 @@ media/
 collected_static/
 db.sqlite3.backup
 collected_static/
+
+.DS_Store
+
+.DS_Store
